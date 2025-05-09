@@ -1,1 +1,3 @@
 one step for a man, big step for this group
+
+this project using uv virtual env, for install all of this project depedencies, try `pip install -r requirements.txt` i guess...
