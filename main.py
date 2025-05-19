@@ -4,7 +4,7 @@ import numpy as np
 import speech_recognition as sr
 import pygame
 
-# Inisialisasi pygame
+# Inisialisasi pygame hehe
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
 pygame.display.set_caption("Dit Tolongin Dit Maze")
