@@ -1,0 +1,43 @@
+# --- Virtual Environments ---
+# Abaikan environment spesifik Anda
+mulmet_env/
+
+# Abaikan nama environment umum lainnya
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# --- Python Cache & Artifacts ---
+# Abaikan folder cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Abaikan folder distribusi/build
+build/
+dist/
+*.egg-info/
+*.egg
+
+# --- File Sensitif ---
+# Abaikan file .env yang mungkin berisi kunci API atau kata sandi
+.env
+.env.*
+!.env.example
+
+# --- IDE & Editor Specific ---
+# Abaikan file konfigurasi IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- File Log ---
+*.log
+
+# --- Lain-lain ---
+# Abaikan file OS (misal: .DS_Store di macOS)
+.DS_Store
