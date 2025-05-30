@@ -38,11 +38,10 @@ Semester Genap 2024/2025
 
 | Minggu | Kegiatan                                                        |
 | ------ | --------------------------------------------------------------- |
-| 1      | TBA |
-| 2      | TBA |
-| 3      | TBA |
-| 4      | TBA |
-| 5      | TBA |
+| 1      | Percobaan Landmarking menggunakan MediaPIPE |
+| 2      | Mencari Asset buat program |
+| 3      | Percobaan Kode dengan pendekatan masing-masing |
+| 4      | Penyelesaian Projek + Membuat laporan |
 
 ---
 
@@ -72,7 +71,7 @@ pip install -r requirements.txt
 ### 4. Jalankan game
 
 ```bash
-python main.py/prototypev2.py
+python main.py
 ```
 
 ---
@@ -85,7 +84,7 @@ Berikut dependensi minimal yang dibutuhkan, sudah tersedia di `requirements.txt`
 pygame
 opencv-python
 mediapipe
-SpeechRecognition
+SpeechRecognition (Menggunakan API google, sebaiknya sediakan koneksi internet yang stabil)
 pyaudio
 ```
 
@@ -115,7 +114,7 @@ Proyek ini melatih kemampuan dalam:
 ## 🧠 Lisensi
 
 Proyek ini dikembangkan untuk kepentingan akademis.
-Distribusi atau penggunaan ulang harus mencantumkan atribusi kepada pemilik asli.
+Distribusi atau penggunaan ulang bebas
 
 ---
 
