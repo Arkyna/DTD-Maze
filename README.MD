@@ -71,7 +71,7 @@ pip install -r requirements.txt
 ### 4. Jalankan game
 
 ```bash
-python main.py/prototypev2.py
+python main.py
 ```
 
 ---
