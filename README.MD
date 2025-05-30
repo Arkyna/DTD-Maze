@@ -84,7 +84,7 @@ Berikut dependensi minimal yang dibutuhkan, sudah tersedia di `requirements.txt`
 pygame
 opencv-python
 mediapipe
-SpeechRecognition
+SpeechRecognition (Menggunakan API google, sebaiknya sediakan koneksi internet yang stabil)
 pyaudio
 ```
 
@@ -114,7 +114,7 @@ Proyek ini melatih kemampuan dalam:
 ## 🧠 Lisensi
 
 Proyek ini dikembangkan untuk kepentingan akademis.
-Distribusi atau penggunaan ulang harus mencantumkan atribusi kepada pemilik asli.
+Distribusi atau penggunaan ulang bebas
 
 ---
 
