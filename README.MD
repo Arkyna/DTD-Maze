@@ -38,11 +38,10 @@ Semester Genap 2024/2025
 
 | Minggu | Kegiatan                                                        |
 | ------ | --------------------------------------------------------------- |
-| 1      | TBA |
-| 2      | TBA |
-| 3      | TBA |
-| 4      | TBA |
-| 5      | TBA |
+| 1      | Percobaan Landmarking menggunakan MediaPIPE |
+| 2      | Mencari Asset buat program |
+| 3      | Percobaan Kode dengan pendekatan masing-masing |
+| 4      | Penyelesaian Projek + Membuat laporan |
 
 ---
 
