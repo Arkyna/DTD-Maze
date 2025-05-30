@@ -1,45 +1,124 @@
 # Dit Tolongin Dit Maze
 
-Sebuah proyek interaktif berbasis Python untuk mata kuliah IF4021
-
-## Deskripsi Proyek
-
-**Dit Tolongin Dit Maze** adalah game berbasis filter interaktif yang menggabungkan pelacakan wajah, pengenalan suara, dan gameplay berbasis labirin. Pemain membantu karakter *Denis* keluar dari labirin menggunakan perintah suara. Karakter Denis dipetakan ke bagian wajah (seperti hidung atau mata) menggunakan **MediaPipe**, dan akan mendapat petunjuk saat pemain mengucapkan kata kunci:  
-> “dit tolongin dit”
-
- **Fitur Unggulan:**
-- Real-time facial landmark tracking menggunakan **MediaPipe**
-- Navigasi karakter Denis dengan posisi wajah
-- Petunjuk suara otomatis berbasis **Speech Recognition**
-- Gameplay ringan, interaktif, dan menyenangkan
+Sebuah proyek interaktif berbasis Python untuk mata kuliah **IF4021 - Sistem/Teknologi Multimedia**
+Semester Genap 2024/2025
 
 ---
 
-## Anggota Tim – *Dikit Lagi Selesai*
+## 🧠 Deskripsi Proyek
 
-| Nama Lengkap             | NIM        | GitHub ID             |
-|--------------------------|------------|------------------------|
-| Alwi Arfan Solin         | 122140197  | `@samanbrembo14` |
-| Jhoel Robert Hutagalung   | 122140174  | `@arkyna`      |
-| Andre Tampubolon         | 122140194  | `@dreeept`         |
+**Dit Tolongin Dit Maze** adalah game interaktif yang menggabungkan **pelacakan wajah real-time**, **perintah suara**, dan **gameplay labirin**. Pemain mengarahkan karakter **Denis** melalui labirin dengan gerakan wajah (terutama hidung), dan dapat meminta bantuan dengan suara jika kesulitan.
 
----
+🎧 Ucapkan:
 
-## Logbook Mingguan
+> “**dit tolongin dit**”
+> Untuk menampilkan **hint** visual yang mempermudah navigasi.
 
-| Minggu | Kegiatan                                                                 |
-|--------|--------------------------------------------------------------------------|
-| 1      | |
-| 2      | |
-| 3      | |
-| 4      | |
-| 5      | |
+### 🔥 Fitur Unggulan
+
+* 🎯 **Face Tracking** dengan **MediaPipe**: deteksi posisi hidung secara real-time
+* 🗣️ **Speech Recognition** dengan perintah suara bahasa Indonesia
+* 🧱 **Maze Hint System** berbasis perintah
+* 🎮 **Kontrol Non-Konvensional**: tidak butuh keyboard—cukup wajah dan suara
+* 🖼️ **Overlay karakter Denis** yang mengikuti gerakan pemain
 
 ---
 
-## Instruksi Instalasi
+## 👨‍💻 Anggota Tim – *Dikit Lagi Selesai*
 
-1. **Clone repositori**
-   ```bash
-   git clone https://github.com/username/dit-tolongin-dit-maze.git
-   cd dit-tolongin-dit-maze
+| Nama Lengkap            | NIM       | GitHub ID        |
+| ----------------------- | --------- | ---------------- |
+| Alwi Arfan Solin        | 122140197 | `@samanbrembo14` |
+| Jhoel Robert Hutagalung | 122140174 | `@arkyna`        |
+| Andre Tampubolon        | 122140194 | `@dreeept`       |
+
+---
+
+## 📅 Logbook Mingguan
+
+| Minggu | Kegiatan                                                        |
+| ------ | --------------------------------------------------------------- |
+| 1      | TBA |
+| 2      | TBA |
+| 3      | TBA |
+| 4      | TBA |
+| 5      | TBA |
+
+---
+
+## 🚀 Cara Menjalankan Proyek
+
+### 1. Clone repositori ini
+
+```bash
+git clone https://github.com/Arkyna/DTD-Maze.git
+cd DTD-Maze
+```
+
+### 2. Buat virtual environment (opsional tapi disarankan)
+
+```bash
+python -m venv DTD-Venv
+source venv/bin/activate        # Linux/macOS
+venv\Scripts\activate.bat       # Windows
+```
+
+### 3. Install dependensi
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Jalankan game
+
+```bash
+python main.py/prototypev2.py
+```
+
+---
+
+## 📦 Dependencies
+
+Berikut dependensi minimal yang dibutuhkan, sudah tersedia di `requirements.txt`:
+
+```txt
+pygame
+opencv-python
+mediapipe
+SpeechRecognition
+pyaudio
+```
+
+> ⚠️ **Catatan**:
+>
+> * Pastikan device Anda memiliki **mikrofon** dan **kamera** yang aktif
+> * Untuk Windows: jika `pyaudio` gagal di-install, gunakan `pipwin`:
+>
+>   ```bash
+>   pip install pipwin
+>   pipwin install pyaudio
+>   ```
+
+---
+
+## 🎯 Tujuan Pembelajaran
+
+Proyek ini melatih kemampuan dalam:
+
+* Implementasi multimedia interaktif (audio + visual input)
+* Pengolahan sinyal video dan suara real-time
+* Integrasi pustaka pihak ketiga dalam Python (OpenCV, MediaPipe, SpeechRecognition)
+* Pengembangan aplikasi game berbasis interaksi alami manusia-komputer
+
+---
+
+## 🧠 Lisensi
+
+Proyek ini dikembangkan untuk kepentingan akademis.
+Distribusi atau penggunaan ulang harus mencantumkan atribusi kepada pemilik asli.
+
+---
+
+## 💬 Kontak
+
+Untuk pertanyaan atau kolaborasi, silakan hubungi salah satu anggota tim melalui GitHub.
