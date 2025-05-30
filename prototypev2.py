@@ -19,9 +19,13 @@ CURRENT_DISPLAY_MAZE_PATH = MAZE_IMAGE_PATH_NO_HINT
 PLAYER_OVERLAY_PATH = os.path.join(BASE_ASSET_PATH, "denis_diam.png")
 player_overlay_image = None
 
-# --- Ukuran untuk Tampilan Overlay Pemain ---
-# Atur ukuran ini sesuai keinginanmu, misal (30, 30) atau (40, 40)
-PLAYER_OVERLAY_DISPLAY_SIZE = (150, 150) # (lebar, tinggi) dalam piksel
+# --- Ukuran TARGET untuk Tampilan Overlay Pemain ---
+# Gambar akan di-resize agar pas dalam kotak ini dengan menjaga rasio aspek.
+# Misal, (40, 40) berarti overlay akan coba dimuat dalam kotak 40x40 piksel.
+PLAYER_OVERLAY_TARGET_BOX_SIZE = (100, 100) # (lebar_maksimum_target, tinggi_maksimum_target)
+
+# Variabel untuk menyimpan ukuran aktual overlay setelah di-scale
+actual_overlay_width, actual_overlay_height = 0, 0
 
 MAZE_SCALE_FACTOR = 1.5
 WHITE, BLACK, RED, BLUE = (255,255,255), (0,0,0), (255,0,0), (0,0,255)
@@ -99,22 +103,52 @@ def load_maze_assets(image_path_to_load, create_collision_mask_from_this_image):
             maze_collision_mask = None
         return False
 
-# Pengaturan Player (Hitbox)
-player_size, player_speed = 15, 2 # Ukuran hitbox player tetap 15x15
+player_size, player_speed = 15, 2
 player_start_x_ratio, player_start_y_ratio = 0.46, 0.00
 player_surface = pygame.Surface((player_size, player_size), pygame.SRCALPHA)
-player_surface.fill(RED) # Warna ini untuk hitbox, mungkin tidak terlihat jika overlay besar
+player_surface.fill(RED)
 player_mask = pygame.mask.from_surface(player_surface)
 
-# --- Memuat Gambar Overlay Pemain ---
+# --- Memuat Gambar Overlay Pemain dengan Menjaga Rasio Aspek ---
 try:
     player_overlay_image_original = pygame.image.load(PLAYER_OVERLAY_PATH).convert_alpha()
-    # Sesuaikan ukuran overlay dengan PLAYER_OVERLAY_DISPLAY_SIZE
-    player_overlay_image = pygame.transform.scale(player_overlay_image_original, PLAYER_OVERLAY_DISPLAY_SIZE)
-    print(f"Gambar overlay pemain '{PLAYER_OVERLAY_PATH}' berhasil dimuat dan di-scale ke {PLAYER_OVERLAY_DISPLAY_SIZE}.")
-except pygame.error as e:
+    original_img_width = player_overlay_image_original.get_width()
+    original_img_height = player_overlay_image_original.get_height()
+    target_box_w, target_box_h = PLAYER_OVERLAY_TARGET_BOX_SIZE
+
+    if original_img_width == 0 or original_img_height == 0: # Hindari division by zero
+        raise ValueError("Ukuran gambar asli adalah nol.")
+
+    # Hitung rasio skala untuk lebar dan tinggi
+    scale_w = target_box_w / original_img_width
+    scale_h = target_box_h / original_img_height
+
+    # Pilih skala yang lebih kecil agar gambar muat di dalam box tanpa memotong atau strech
+    scale_factor = min(scale_w, scale_h)
+
+    # Hitung dimensi baru
+    new_overlay_width = int(original_img_width * scale_factor)
+    new_overlay_height = int(original_img_height * scale_factor)
+
+    if new_overlay_width > 0 and new_overlay_height > 0:
+        player_overlay_image = pygame.transform.smoothscale(player_overlay_image_original, (new_overlay_width, new_overlay_height))
+        actual_overlay_width, actual_overlay_height = player_overlay_image.get_size() # Simpan ukuran aktual
+        print(f"Gambar overlay pemain '{PLAYER_OVERLAY_PATH}' berhasil dimuat dan di-resize ke ({actual_overlay_width}, {actual_overlay_height}) dengan menjaga rasio aspek.")
+    else:
+        print(f"Gagal menghitung ukuran baru untuk overlay (hasilnya nol atau negatif). Menggunakan ukuran asli jika memungkinkan atau tidak ada overlay.")
+        # Fallback jika ukuran baru tidak valid, coba gunakan ukuran asli jika cukup kecil, atau set None
+        if original_img_width <= target_box_w and original_img_height <= target_box_h and original_img_width > 0 and original_img_height > 0:
+            player_overlay_image = player_overlay_image_original
+            actual_overlay_width, actual_overlay_height = player_overlay_image.get_size()
+        else: # Jika terlalu besar atau tidak valid, jangan tampilkan
+            player_overlay_image = None
+            actual_overlay_width, actual_overlay_height = 0,0
+
+
+except Exception as e: # Ubah ke Exception yang lebih umum untuk menangkap ValueError juga
     print(f"Gagal memuat atau memproses gambar overlay pemain '{PLAYER_OVERLAY_PATH}': {e}")
     player_overlay_image = None
+    actual_overlay_width, actual_overlay_height = 0, 0 # Default jika gagal load
 
 if not load_maze_assets(MAZE_IMAGE_PATH_NO_HINT, True):
     print("KRITIKAL: Gagal memuat labirin awal dan maskernya. Game mungkin tidak berfungsi dengan benar.")
@@ -122,7 +156,7 @@ if not load_maze_assets(MAZE_IMAGE_PATH_NO_HINT, True):
 player_rect = pygame.Rect(
     MAZE_OFFSET_X + int(actual_maze_width * player_start_x_ratio),
     MAZE_OFFSET_Y + int(actual_maze_height * player_start_y_ratio),
-    player_size, player_size # player_rect tetap menggunakan player_size untuk hitbox
+    player_size, player_size
 )
 
 initial_player_center_x, initial_player_center_y = player_rect.centerx, player_rect.centery
@@ -346,14 +380,14 @@ while running:
     # pygame.draw.rect(screen, RED, player_rect)
 
     # Gambar overlay pemain di atas hitbox
-    if player_overlay_image:
+    if player_overlay_image and actual_overlay_width > 0 and actual_overlay_height > 0 : # Pastikan ada gambar dan ukurannya valid
         # Hitung posisi topleft untuk overlay agar tengahnya sama dengan tengah player_rect
-        overlay_width, overlay_height = PLAYER_OVERLAY_DISPLAY_SIZE
-        overlay_x = player_rect.centerx - overlay_width // 2
-        overlay_y = player_rect.centery - overlay_height // 2
+        # Gunakan ukuran aktual dari overlay yang sudah di-scale (actual_overlay_width, actual_overlay_height)
+        overlay_x = player_rect.centerx - actual_overlay_width // 2
+        overlay_y = player_rect.centery - actual_overlay_height // 2
         screen.blit(player_overlay_image, (overlay_x, overlay_y))
     else:
-        # Jika overlay gagal dimuat, gambar kotak merah sebagai player
+        # Jika overlay gagal dimuat atau ukurannya tidak valid, gambar kotak merah sebagai player
         pygame.draw.rect(screen, RED, player_rect)
 
 
