@@ -18,17 +18,11 @@ CURRENT_DISPLAY_MAZE_PATH = MAZE_IMAGE_PATH_NO_HINT
 
 PLAYER_OVERLAY_PATH = os.path.join(BASE_ASSET_PATH, "denis_diam.png")
 player_overlay_image = None
-
-# --- Ukuran TARGET untuk Tampilan Overlay Pemain ---
-# Gambar akan di-resize agar pas dalam kotak ini dengan menjaga rasio aspek.
-# Misal, (40, 40) berarti overlay akan coba dimuat dalam kotak 40x40 piksel.
-PLAYER_OVERLAY_TARGET_BOX_SIZE = (100, 100) # (lebar_maksimum_target, tinggi_maksimum_target)
-
-# Variabel untuk menyimpan ukuran aktual overlay setelah di-scale
+PLAYER_OVERLAY_TARGET_BOX_SIZE = (110, 110)
 actual_overlay_width, actual_overlay_height = 0, 0
 
 MAZE_SCALE_FACTOR = 1.5
-WHITE, BLACK, RED, BLUE = (255,255,255), (0,0,0), (255,0,0), (0,0,255)
+WHITE, BLACK, RED, BLUE, GREY = (255,255,255), (0,0,0), (255,0,0), (0,0,255), (200,200,200)
 GREEN_NEUTRAL, UI_BACKGROUND, YELLOW_HINT_MSG = (0,255,0), WHITE, (200,200,0)
 
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -58,6 +52,12 @@ maze_collision_mask = None
 actual_maze_width, actual_maze_height = 0, 0
 MAZE_OFFSET_X, MAZE_OFFSET_Y = 0, 0
 maze_boundary_rect = None
+
+# --- Variabel Timer ---
+start_time = 0  # Akan diinisialisasi setelah aset dimuat
+elapsed_time_str = "Waktu: 00:00"
+final_elapsed_time_str = "" # Untuk menyimpan waktu saat menang
+game_started_timer = False # Flag untuk menandakan timer sudah dimulai
 
 def load_maze_assets(image_path_to_load, create_collision_mask_from_this_image):
     global maze_display_image, maze_collision_mask, actual_maze_width, actual_maze_height
@@ -109,49 +109,46 @@ player_surface = pygame.Surface((player_size, player_size), pygame.SRCALPHA)
 player_surface.fill(RED)
 player_mask = pygame.mask.from_surface(player_surface)
 
-# --- Memuat Gambar Overlay Pemain dengan Menjaga Rasio Aspek ---
 try:
     player_overlay_image_original = pygame.image.load(PLAYER_OVERLAY_PATH).convert_alpha()
     original_img_width = player_overlay_image_original.get_width()
     original_img_height = player_overlay_image_original.get_height()
     target_box_w, target_box_h = PLAYER_OVERLAY_TARGET_BOX_SIZE
 
-    if original_img_width == 0 or original_img_height == 0: # Hindari division by zero
+    if original_img_width == 0 or original_img_height == 0:
         raise ValueError("Ukuran gambar asli adalah nol.")
 
-    # Hitung rasio skala untuk lebar dan tinggi
     scale_w = target_box_w / original_img_width
     scale_h = target_box_h / original_img_height
-
-    # Pilih skala yang lebih kecil agar gambar muat di dalam box tanpa memotong atau strech
     scale_factor = min(scale_w, scale_h)
 
-    # Hitung dimensi baru
     new_overlay_width = int(original_img_width * scale_factor)
     new_overlay_height = int(original_img_height * scale_factor)
 
     if new_overlay_width > 0 and new_overlay_height > 0:
         player_overlay_image = pygame.transform.smoothscale(player_overlay_image_original, (new_overlay_width, new_overlay_height))
-        actual_overlay_width, actual_overlay_height = player_overlay_image.get_size() # Simpan ukuran aktual
+        actual_overlay_width, actual_overlay_height = player_overlay_image.get_size()
         print(f"Gambar overlay pemain '{PLAYER_OVERLAY_PATH}' berhasil dimuat dan di-resize ke ({actual_overlay_width}, {actual_overlay_height}) dengan menjaga rasio aspek.")
     else:
-        print(f"Gagal menghitung ukuran baru untuk overlay (hasilnya nol atau negatif). Menggunakan ukuran asli jika memungkinkan atau tidak ada overlay.")
-        # Fallback jika ukuran baru tidak valid, coba gunakan ukuran asli jika cukup kecil, atau set None
+        print(f"Gagal menghitung ukuran baru untuk overlay. Menggunakan ukuran asli atau tidak ada overlay.")
         if original_img_width <= target_box_w and original_img_height <= target_box_h and original_img_width > 0 and original_img_height > 0:
             player_overlay_image = player_overlay_image_original
             actual_overlay_width, actual_overlay_height = player_overlay_image.get_size()
-        else: # Jika terlalu besar atau tidak valid, jangan tampilkan
+        else:
             player_overlay_image = None
             actual_overlay_width, actual_overlay_height = 0,0
-
-
-except Exception as e: # Ubah ke Exception yang lebih umum untuk menangkap ValueError juga
+except Exception as e:
     print(f"Gagal memuat atau memproses gambar overlay pemain '{PLAYER_OVERLAY_PATH}': {e}")
     player_overlay_image = None
-    actual_overlay_width, actual_overlay_height = 0, 0 # Default jika gagal load
+    actual_overlay_width, actual_overlay_height = 0, 0
 
 if not load_maze_assets(MAZE_IMAGE_PATH_NO_HINT, True):
     print("KRITIKAL: Gagal memuat labirin awal dan maskernya. Game mungkin tidak berfungsi dengan benar.")
+else:
+    # Mulai timer setelah aset utama berhasil dimuat
+    start_time = pygame.time.get_ticks()
+    game_started_timer = True
+
 
 player_rect = pygame.Rect(
     MAZE_OFFSET_X + int(actual_maze_width * player_start_x_ratio),
@@ -163,7 +160,11 @@ initial_player_center_x, initial_player_center_y = player_rect.centerx, player_r
 player_has_moved_from_spawn = False
 MIN_DISTANCE_FROM_SPAWN_FOR_WIN = player_size * 2
 
-font, small_font, micro_font = pygame.font.Font(None, 74), pygame.font.Font(None, 36), pygame.font.Font(None, 24)
+font = pygame.font.Font(None, 74)
+title_font = pygame.font.Font(None, 50) # Font untuk judul "KAMU MENANG!"
+info_font = pygame.font.Font(None, 38) # Font untuk info waktu
+small_font = pygame.font.Font(None, 36)
+micro_font = pygame.font.Font(None, 24)
 
 def check_maze_collision_with_masks(p_rect, p_mask, m_collision_mask, m_offset_x, m_offset_y):
     if not m_collision_mask or not p_mask:
@@ -195,8 +196,11 @@ def listen_for_hint_command():
             listening_status_message = "Mikrofon error. Coba lagi nanti."
             pygame.time.wait(1000)
             continue
-        if hint_active:
-            listening_status_message = "Hint sudah aktif."
+        if hint_active: # Jika hint sudah aktif, tidak perlu mendengarkan lagi
+            # Cek apakah pesan hint sudah aktif, jika belum, set.
+            # Ini untuk menghindari pesan "Mendengarkan..." muncul lagi setelah hint aktif.
+            if "Hint sudah aktif" not in listening_status_message:
+                 listening_status_message = "Hint sudah aktif."
             pygame.time.wait(1000)
             continue
 
@@ -256,7 +260,7 @@ while running:
         if load_maze_assets(MAZE_IMAGE_PATH_HINT, False):
             hint_active = True
             print(f"Labirin hint dimuat untuk TAMPILAN. Posisi pemain TETAP. Masker tabrakan dari labirin asli.")
-            listening_status_message = "Hint sudah aktif."
+            listening_status_message = "Hint sudah aktif." # Langsung set status
         else:
             print("Gagal memuat labirin hint.")
             listening_status_message = "Gagal load hint."
@@ -313,6 +317,15 @@ while running:
                 else: cv2.putText(frame, "Posisikan hidung di tengah", (cam_w//2-150, cam_h//2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, WHITE, 2)
             cv2.imshow(cam_window_name, frame)
 
+    # --- Logika Game (pergerakan, tabrakan, menang) & Timer ---
+    if game_started_timer and not game_won: # Update timer jika game berjalan dan belum menang
+        current_ticks = pygame.time.get_ticks()
+        elapsed_milliseconds = current_ticks - start_time
+        total_seconds = elapsed_milliseconds // 1000
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        elapsed_time_str = f"Waktu: {minutes:02}:{seconds:02}"
+
     if not game_won:
         original_player_x, original_player_y = player_rect.x, player_rect.y
 
@@ -345,17 +358,29 @@ while running:
             if on_perimeter:
                 dist_from_spawn_vec = pygame.math.Vector2(player_rect.centerx, player_rect.centery).distance_to(pygame.math.Vector2(initial_player_center_x, initial_player_center_y))
                 if dist_from_spawn_vec > MIN_DISTANCE_FROM_SPAWN_FOR_WIN:
-                    game_won = True
-                    print(f"MENANG! Jarak dari spawn: {dist_from_spawn_vec:.1f}")
+                    if not game_won: # Hanya set sekali saat menang
+                        game_won = True
+                        print(f"MENANG! Jarak dari spawn: {dist_from_spawn_vec:.1f}")
+                        # Catat waktu final saat menang
+                        if game_started_timer:
+                            final_elapsed_milliseconds = pygame.time.get_ticks() - start_time
+                            final_total_seconds = final_elapsed_milliseconds // 1000
+                            final_minutes = final_total_seconds // 60
+                            final_seconds = final_total_seconds % 60
+                            final_elapsed_time_str = f"{final_minutes:02}:{final_seconds:02}"
+                            elapsed_time_str = f"Waktu: {final_elapsed_time_str}" # Freeze tampilan timer utama
 
+
+    # --- Proses Menggambar (Rendering) ---
     screen.fill(WHITE)
     pygame.draw.rect(screen, UI_BACKGROUND, (0, 0, WINDOW_WIDTH, MAZE_OFFSET_Y))
     pygame.draw.rect(screen, UI_BACKGROUND, (0, MAZE_OFFSET_Y + actual_maze_height, WINDOW_WIDTH, WINDOW_HEIGHT - (MAZE_OFFSET_Y + actual_maze_height)))
     pygame.draw.rect(screen, UI_BACKGROUND, (0, MAZE_OFFSET_Y, MAZE_OFFSET_X, actual_maze_height))
     pygame.draw.rect(screen, UI_BACKGROUND, (MAZE_OFFSET_X + actual_maze_width, MAZE_OFFSET_Y, WINDOW_WIDTH - (MAZE_OFFSET_X + actual_maze_width), actual_maze_height))
 
-    score_text_surface = small_font.render("Skor: 0", True, BLACK)
-    screen.blit(score_text_surface, (10, 10))
+    # Tampilkan Timer
+    time_text_surface = small_font.render(elapsed_time_str, True, BLACK)
+    screen.blit(time_text_surface, (10, 10))
 
     speech_color = YELLOW_HINT_MSG if "hint" in listening_status_message.lower() or "diminta" in listening_status_message.lower() or "aktif" in listening_status_message.lower() else BLACK
     speech_status_surf = micro_font.render(listening_status_message, True, speech_color)
@@ -376,26 +401,34 @@ while running:
             text_surface = small_font.render("Error: Labirin Gagal Dimuat", True, BLACK)
             screen.blit(text_surface, text_surface.get_rect(center=placeholder_rect.center))
 
-    # Gambar hitbox (kotak merah) untuk debugging, bisa dikomentari jika tidak perlu
-    # pygame.draw.rect(screen, RED, player_rect)
-
-    # Gambar overlay pemain di atas hitbox
-    if player_overlay_image and actual_overlay_width > 0 and actual_overlay_height > 0 : # Pastikan ada gambar dan ukurannya valid
-        # Hitung posisi topleft untuk overlay agar tengahnya sama dengan tengah player_rect
-        # Gunakan ukuran aktual dari overlay yang sudah di-scale (actual_overlay_width, actual_overlay_height)
+    if player_overlay_image and actual_overlay_width > 0 and actual_overlay_height > 0 :
         overlay_x = player_rect.centerx - actual_overlay_width // 2
         overlay_y = player_rect.centery - actual_overlay_height // 2
         screen.blit(player_overlay_image, (overlay_x, overlay_y))
     else:
-        # Jika overlay gagal dimuat atau ukurannya tidak valid, gambar kotak merah sebagai player
         pygame.draw.rect(screen, RED, player_rect)
 
-
     if game_won:
-        win_text_surface = font.render("KAMU MENANG!", True, BLUE)
-        win_text_rect = win_text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
-        pygame.draw.rect(screen, WHITE, win_text_rect.inflate(20,20))
-        screen.blit(win_text_surface, win_text_rect)
+        # Area latar belakang untuk pesan menang
+        padding = 20
+        popup_width = 400
+        popup_height = 150 # Cukup untuk dua baris teks
+        popup_rect = pygame.Rect((WINDOW_WIDTH - popup_width) // 2, (WINDOW_HEIGHT - popup_height) // 2, popup_width, popup_height)
+
+        pygame.draw.rect(screen, GREY, popup_rect, border_radius=15) # Latar belakang abu-abu dengan sudut bulat
+        pygame.draw.rect(screen, BLUE, popup_rect, 3, border_radius=15) # Border biru
+
+        # Teks "KAMU MENANG!"
+        win_title_surface = title_font.render("KAMU MENANG!", True, BLUE)
+        win_title_rect = win_title_surface.get_rect(center=(popup_rect.centerx, popup_rect.centery - 25)) # Sedikit ke atas
+
+        # Teks "Waktu: MM:SS"
+        win_time_surface = info_font.render(f"Waktu Selesai: {final_elapsed_time_str}", True, BLACK)
+        win_time_rect = win_time_surface.get_rect(center=(popup_rect.centerx, popup_rect.centery + 25)) # Sedikit ke bawah
+
+        screen.blit(win_title_surface, win_title_rect)
+        screen.blit(win_time_surface, win_time_rect)
+
 
     pygame.display.flip()
 
