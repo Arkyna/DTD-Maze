@@ -32,6 +32,7 @@ Semester Genap 2024/2025
 | Jhoel Robert Hutagalung | 122140174 | `@arkyna`        |
 | Andre Tampubolon        | 122140194 | `@dreeept`       |
 
+![Dikit Lagi Selesai](./assets/start.png)
 ---
 
 ## 📅 Logbook Mingguan
