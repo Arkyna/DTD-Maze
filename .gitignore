@@ -41,3 +41,4 @@ dist/
 # --- Lain-lain ---
 # Abaikan file OS (misal: .DS_Store di macOS)
 .DS_Store
+tempCodeRunnerFile.py
